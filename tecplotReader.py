@@ -788,7 +788,8 @@ class TecplotFile():
 if __name__ == "__main__":
     file = 'PVT_dense_01_00_crtrs_Nd.dat'
     file = 'efields.dat'
-    # file = '1500Ws_2000Input_85PulseDC_FullBurst_p054_iedf_01_ion_data_iedf.dat.iadf_1d_v4.plt'
+    file = '1500Ws_2000Input_85PulseDC_FullBurst_p054_iedf_01_ion_data_iedf.dat.iadf_1d_v4.plt'
+    file = '1500Ws_2000Input_85PulseDC_FullBurst_iedf_01.dat'
     import time
 
     tic = time.perf_counter()
@@ -814,7 +815,12 @@ if __name__ == "__main__":
 
     # data is loaded when tecFile.data is accessed or tecFile.load_data is called
     tic = time.perf_counter()
-    tecFile.load_data(True)
+
+    ## you don't need to explicitly invoke the following command
+    ## data will be loaded when you access the tecFile.data oject
+    # tecFile.load_data(True)
+    minVals = tecFile.data[0](-1)['MinVals']
+    zone_data = tecFile.data[0] # first zone
     toc = time.perf_counter()
     print(f'Read data: {toc-tic:.4f} seconds')
 
