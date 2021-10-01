@@ -512,14 +512,16 @@ def read_file_header(byte_list):
             __aux_var_type, offset = parse_buffer(byte_list, Int, offset)
             aux_var_val, offset = parse_str(byte_list, offset)
             aux_data.append((aux_var_name, aux_var_val))
-            assert offset+FLOAT_SIZE != len(byte_list)
-            tmp, new_offset = parse_buffer(byte_list, Float, offset)
         elif tmp in UNSUPPORTED_MARKER.values():
             offset = new_offset
-            assert offset+FLOAT_SIZE != len(byte_list)
-            tmp, new_offset = parse_buffer(byte_list, Float, offset)
         elif tmp == EOHMARKER or new_offset == len(byte_list):
             raise ValueError('No zone record is found')
+        else:
+            offset = new_offset
+
+        assert offset+FLOAT_SIZE != len(byte_list)
+        tmp, new_offset = parse_buffer(byte_list, Float, offset)
+
 
     end_byte = new_offset - FLOAT_SIZE
 
@@ -624,7 +626,7 @@ def read_zone_data(byte_list, zone_markers, file_header, zone_header, zone_count
 
         non_passive_non_shared = []
         if internal_data['_VarSharing_'] != 0:
-            non_passive_non_shared = [v for i, v in zip(internal_data['_ShareVarDict_'], var_names) if i == -1]
+            non_passive_non_shared = [i for i, v in internal_data['_ShareVarDict_'].items() if v == -1]
         else:
             non_passive_non_shared = var_names[:]
 
@@ -680,7 +682,7 @@ def read_zone_data(byte_list, zone_markers, file_header, zone_header, zone_count
                 data = np.fromfile(byte_list.f, dtype=internal_data['_VarDtype_'][name],
                                 count=ndata)
                 #logger.info(f"Finish loading Zone {zone_counter+1} Variable {name:<{nmaxlenvar+1}s} started at {offset} byte")
-            offset = offset + FLOAT_SIZE * ndata
+            offset = offset + data.dtype.itemsize * data.size
             end_byte = offset
             zone_data[name] = data
 
@@ -810,6 +812,7 @@ if __name__ == "__main__":
     file = 'efields.dat'
     file = '1500Ws_2000Input_85PulseDC_FullBurst_p054_iedf_01_ion_data_iedf.dat.iadf_1d_v4.plt'
     file = '1500Ws_2000Input_85PulseDC_FullBurst_iedf_01.dat'
+    file = 'test.dat'
     import time
 
     tic = time.perf_counter()
