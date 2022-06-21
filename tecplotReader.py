@@ -643,6 +643,7 @@ def read_zone_data(byte_list, zone_markers, file_header, zone_header, zone_count
             max_val[var_with_min_max], offset = parse_buffer(byte_list, Float64, offset)
 
         for v in var_names:
+            zone_data[v] = None
             if v not in min_val.keys():
                 if internal_data['_ShareVarDict_'][v] != -1:
                     vv = var_names[internal_data['_ShareVarDict_'][v]]
