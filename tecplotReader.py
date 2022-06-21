@@ -657,14 +657,27 @@ def read_zone_data(byte_list, zone_markers, file_header, zone_header, zone_count
         nmaxlenvar = max([len(i) for i in non_passive_non_shared])
         for ivar, name in enumerate(non_passive_non_shared):
             varloc = zh['var_loc'][name]
+            shape = []
             if zt == ZoneType.ORDERED:
                 Imax = zh['I']
                 Jmax = zh['J']
                 Kmax = zh['K']
                 if varloc == 0:
                     ndata = Imax * Jmax * Kmax
+                    shape.append(Imax)
+                    if Jmax > 1:
+                        shape.append(Jmax)
+                    if Kmax > 1:
+                        shape.append(Kmax)
                 else:
-                    ndata = Imax * Jmax * (Kmax-1)
+                    ndata = Imax
+                    shape.append(Imax)
+                    if Jmax > 1:
+                        ndata *= Jmax
+                        shape.append(Jmax)
+                    if Kmax > 1:
+                        ndata *= Kmax - 1
+                        shape.append(Kmax-1)
             else:
                 NumPts = zh['Nodes']
                 NumElements = zh['Elements']
@@ -684,6 +697,11 @@ def read_zone_data(byte_list, zone_markers, file_header, zone_header, zone_count
                 #logger.info(f"Finish loading Zone {zone_counter+1} Variable {name:<{nmaxlenvar+1}s} started at {offset} byte")
             offset = offset + data.dtype.itemsize * data.size
             end_byte = offset
+
+            if zt == ZoneType.ORDERED:
+                data = np.reshape(data, shape, order='F')
+                if varloc == 1:
+                    data = data[:-1, :-1,:]
             zone_data[name] = data
 
 
@@ -812,7 +830,6 @@ if __name__ == "__main__":
     file = 'efields.dat'
     file = '1500Ws_2000Input_85PulseDC_FullBurst_p054_iedf_01_ion_data_iedf.dat.iadf_1d_v4.plt'
     file = '1500Ws_2000Input_85PulseDC_FullBurst_iedf_01.dat'
-    file = 'test.dat'
     import time
 
     tic = time.perf_counter()
